@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#4a8bff" />
+    <title>温馨问候 | 今天过得开心吗</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: white;
+            font-family: Arial, sans-serif;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        #modal {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            width: 85vw;
+            max-width: 320px;
+            padding: 25px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            opacity: 0;
+            animation: modalIn 0.4s ease-out forwards;
+            text-align: center;
+            z-index: 99999;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+
+        @keyframes modalIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            70% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #modal h2 {
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 22px;
+        }
+
+        #modal p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 14px 24px;
+            border: none;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-height: 48px;
+        }
+
+        .btn-primary {
+            background: #4a8bff;
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: #3c7af5;
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #555;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-secondary:active {
+            background: #e9ecef;
+            transform: scale(0.98);
+        }
+
+        .popup {
+            position: absolute;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            white-space: nowrap;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+            transform-origin: center;
+            opacity: 0;
+            animation: popupIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            cursor: pointer;
+            z-index: 100;
+            font-weight: 500;
+            max-width: 70vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes popupIn {
+            0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .pink { background: #ffd7e5; color: #b1004d; }
+        .yellow { background: #fff6c7; color: #8a6d00; }
+        .blue { background: #d5eaff; color: #004a9f; }
+        .green { background: #dbffe2; color: #0b7a2b; }
+        .purple { background: #e8d7ff; color: #5a2d9c; }
+        .orange { background: #ffe7d5; color: #b35200; }
+
+        .decoration {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.04;
+            z-index: 0;
+            background: #4a8bff;
+        }
+
+        #final-message {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 85vw;
+            max-width: 320px;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        #final-message.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #final-message h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        #final-message p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .heart {
+            color: #ff4d6d;
+            font-size: 36px;
+            margin: 15px 0;
+            animation: heartbeat 1.2s ease infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes popupOut {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(0) rotate(10deg); opacity: 0; }
+        }
+        
+        @keyframes modalOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="modal">
+        <h2>✨ 温馨问候 ✨</h2>
+        <p>这里有一份特别的问候，希望它能给你带来一丝温暖和快乐！</p>
+        <div class="modal-buttons">
+            <button class="modal-btn btn-primary" onclick="startPopups()">打开问候</button>
+            <button class="modal-btn btn-secondary" onclick="closeModal()">稍后再说</button>
+        </div>
+    </div>
+
+    <div id="final-message">
+        <h2>感谢你的停留！</h2>
+        <p>希望这些小小的问候能给你带来一丝温暖和快乐。</p>
+        <div class="heart">❤️</div>
+        <p>无论今天过得如何，请记得好好照顾自己。</p>
+        <button class="modal-btn btn-primary" onclick="location.reload()">再次体验</button>
+    </div>
+
+    <script>
+        const greetings = [
+            "今天过得开心吗？", "记得微笑哦！", "你真的很棒！", "保持积极心态！", "一切都会好起来的！",
+            "你值得被温柔以待！", "今天也要加油呀！", "世界因你而美丽！", "保持好心情！", "你是最特别的！",
+            "记得好好休息！", "今天有好事发生！", "保持可爱！", "你做得很好！", "明天会更好！"
+        ];
+
+        let popupInterval;
+        let isFinalMessageShown = false;
+
+        function closeModal() {
+            const modal = document.getElementById("modal");
+            modal.style.animation = "modalOut 0.3s ease forwards";
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 300);
+        }
+
+        function startPopups() {
+            document.getElementById("modal").style.display = "none";
+            createDecorations();
+            generatePopups();
+            
+            setTimeout(() => {
+                showFinalMessage();
+                isFinalMessageShown = true;
+            }, 15000);
+        }
+
+        function createDecorations() {
+            const colors = ['#4a8bff', '#ff4d6d', '#34c759', '#ff9500', '#af52de'];
+            
+            for (let i = 0; i < 8; i++) {
+                const decoration = document.createElement('div');
+                decoration.className = 'decoration';
+                const size = Math.random() * 80 + 20;
+                decoration.style.width = size + 'px';
+                decoration.style.height = size + 'px';
+                decoration.style.background = colors[Math.floor(Math.random() * colors.length)];
+                decoration.style.left = Math.random() * 100 + '%';
+                decoration.style.top = Math.random() * 100 + '%';
+                document.body.appendChild(decoration);
+            }
+        }
+
+        function generatePopups() {
+            let popupCount = 0;
+            
+            popupInterval = setInterval(() => {
+                if (isFinalMessageShown) {
+                    clearInterval(popupInterval);
+                    return;
+                }
+                
+                const batchSize = 3 + Math.floor(Math.random() * 3);
+                
+                for (let i = 0; i < batchSize; i++) {
+                    setTimeout(() => {
+                        if (!isFinalMessageShown) {
+                            createPopup(popupCount++);
+                        }
+                    }, i * 20);
+                }
+            }, 80);
+        }
+
+        function createPopup(i) {
+            const popup = document.createElement("div");
+            popup.className = "popup " + ["pink", "yellow", "blue", "green", "purple", "orange"][Math.floor(Math.random() * 6)];
+            popup.innerText = greetings[Math.floor(Math.random() * greetings.length)];
+            
+            popup.onclick = function() {
+                this.style.animation = "popupOut 0.2s ease forwards";
+                setTimeout(() => {
+                    if (this.parentNode) {
+                        this.parentNode.removeChild(this);
+                    }
+                }, 200);
+            };
+
+            document.body.appendChild(popup);
+
+            const maxX = window.innerWidth - 120;
+            const maxY = window.innerHeight - 60;
+            const x = Math.max(15, Math.min(maxX, Math.random() * maxX));
+            const y = Math.max(15, Math.min(maxY, Math.random() * maxY));
+
+            popup.style.left = x + "px";
+            popup.style.top = y + "px";
+        }
+
+        function showFinalMessage() {
+            isFinalMessageShown = true;
+            if (popupInterval) clearInterval(popupInterval);
+            document.getElementById('final-message').classList.add('show');
+        }
+    </script>
+</body>
+</html>
