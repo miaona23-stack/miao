@@ -210,39 +210,6 @@
             0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
         }
-
-        /* 音乐控制样式 */
-        .music-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            transition: all 0.2s ease;
-            border: 2px solid #4a8bff;
-            font-size: 20px;
-        }
-
-        .music-control:active {
-            transform: scale(0.95);
-            background: white;
-        }
-
-        .music-control.playing::before {
-            content: "⏸️";
-        }
-
-        .music-control:not(.playing)::before {
-            content: "▶️";
-        }
     </style>
 </head>
 <body>
@@ -263,11 +230,8 @@
         <button class="modal-btn btn-primary" onclick="location.reload()">再次体验</button>
     </div>
 
-    <!-- 音乐控制按钮 -->
-    <div class="music-control" id="musicControl"></div>
-
     <!-- 背景音乐 -->
-    <audio id="bgMusic" loop>
+    <audio id="bgMusic" loop playsinline>
         <source src="manbo.MP3" type="audio/mpeg">
         您的浏览器不支持音频元素。
     </audio>
@@ -300,11 +264,30 @@
         const MAX_POPUPS = 35; // 舒适阈值
         let usedGreetings = []; // 记录已使用的问候
         let greetingCycleCount = 0; // 问候语循环计数
+        let audioKeepAliveInterval; // iOS音频保活定时器
 
-        // 音乐控制功能
-        const musicControl = document.getElementById('musicControl');
+        // 音乐控制
         const bgMusic = document.getElementById('bgMusic');
         let musicPlaying = false;
+
+        // iOS音频保活功能
+        function startAudioKeepAlive() {
+            // 每3秒检查一次音乐状态，如果暂停了就重新播放
+            audioKeepAliveInterval = setInterval(() => {
+                if (musicPlaying && bgMusic.paused) {
+                    console.log('iOS音频休眠，重新唤醒');
+                    bgMusic.play().catch(e => {
+                        console.log('重新播放失败:', e);
+                    });
+                }
+            }, 3000);
+        }
+
+        function stopAudioKeepAlive() {
+            if (audioKeepAliveInterval) {
+                clearInterval(audioKeepAliveInterval);
+            }
+        }
 
         // 智能获取问候语（优先未使用过的）
         function getSmartGreeting() {
@@ -340,30 +323,6 @@
             }
         }
 
-        // 初始化音乐控制
-        function initMusicControl() {
-            musicControl.addEventListener('click', function() {
-                if (musicPlaying) {
-                    bgMusic.pause();
-                    musicPlaying = false;
-                    musicControl.classList.remove('playing');
-                } else {
-                    const playPromise = bgMusic.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            musicPlaying = true;
-                            musicControl.classList.add('playing');
-                        }).catch(error => {
-                            musicControl.style.background = '#ffeb3b';
-                            setTimeout(() => {
-                                musicControl.style.background = '';
-                            }, 1000);
-                        });
-                    }
-                }
-            });
-        }
-
         function closeModal() {
             const modal = document.getElementById("modal");
             modal.style.animation = "modalOut 0.3s ease forwards";
@@ -379,17 +338,27 @@
             activePopups = [];
             usedGreetings = [];
             greetingCycleCount = 0;
+            musicPlaying = false;
             
-            // 开始播放音乐
-            const playPromise = bgMusic.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    musicPlaying = true;
-                    musicControl.classList.add('playing');
-                }).catch(error => {
-                    console.log('音乐播放需要用户交互');
-                });
-            }
+            // iOS音频修复：开始播放音乐
+            const playMusic = () => {
+                const playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        musicPlaying = true;
+                        console.log('音乐开始播放');
+                        // 启动iOS音频保活
+                        startAudioKeepAlive();
+                    }).catch(error => {
+                        console.log('音乐播放需要用户交互，2秒后重试');
+                        // 2秒后重试
+                        setTimeout(playMusic, 2000);
+                    });
+                }
+            };
+            
+            // 延迟一点开始播放，确保页面交互完成
+            setTimeout(playMusic, 100);
             
             experienceStartTime = Date.now();
             createDecorations();
@@ -400,6 +369,8 @@
                 showFinalMessage();
                 isFinalMessageShown = true;
                 if (popupInterval) clearInterval(popupInterval);
+                // 停止音频保活
+                stopAudioKeepAlive();
             }, 60000);
         }
 
@@ -506,9 +477,6 @@
             if (popupInterval) clearInterval(popupInterval);
             document.getElementById('final-message').classList.add('show');
         }
-
-        // 初始化音乐控制
-        initMusicControl();
     </script>
 </body>
 </html>
